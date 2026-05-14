@@ -35,6 +35,13 @@ def _auth_headers(path, body=None):
 
     GET の場合: signature = HMAC(nonce + path)
     POST の場合: signature = HMAC(nonce + json_body)
+
+    Args:
+        path: API パス（GET の場合はクエリパラメータ含む）
+        body: POST リクエストのボディ（dict）。GET の場合は None。
+
+    Returns:
+        tuple: (headers_dict, body_json_str or None)
     """
     api_key = os.environ['BITBANK_API_KEY']
     api_secret = os.environ['BITBANK_API_SECRET']
@@ -68,6 +75,10 @@ def _auth_headers(path, body=None):
 def get_ticker_price(pair='btc_jpy'):
     """現在の最終取引価格を取得する（公開API・認証不要）。
 
+    公開 API: GET https://public.bitbank.cc/{pair}/ticker
+    レスポンス例:
+      {"success": 1, "data": {"sell": "...", "buy": "...", "last": "15000000", ...}}
+
     Args:
         pair: 通貨ペア（デフォルト: btc_jpy）
 
@@ -77,27 +88,64 @@ def get_ticker_price(pair='btc_jpy'):
     Raises:
         RuntimeError: API エラー時
     """
-    # TODO: Step 2 で実装
-    pass
+    url = f'{PUBLIC_BASE_URL}/{pair}/ticker'
+    res = requests.get(url).json()
+
+    if res.get('success') != 1:
+        raise RuntimeError(f'価格取得失敗: {json.dumps(res, ensure_ascii=False)}')
+
+    last_price = float(res['data']['last'])
+    print(f'  現在価格: {last_price:,.0f}円')
+    return last_price
 
 
 def get_order(pair, order_id):
     """注文情報を取得する。
+
+    GET /v1/user/spot/order?pair={pair}&order_id={order_id}
+
+    Bitbank の注文ステータス:
+      - UNFILLED: 未約定
+      - PARTIALLY_FILLED: 一部約定
+      - FULLY_FILLED: 全約定
+      - CANCELED_UNFILLED: キャンセル（未約定）
+      - CANCELED_PARTIALLY_FILLED: キャンセル（一部約定）
 
     Args:
         pair: 通貨ペア
         order_id: 注文ID
 
     Returns:
-        dict: 注文情報（status, side, type, price, amount 等）
+        dict: 注文情報。API エラー時は RuntimeError を投げる。
         None: 注文が見つからない場合
     """
-    # TODO: Step 2 で実装
-    pass
+    path = f'/v1/user/spot/order?pair={pair}&order_id={order_id}'
+    headers, _ = _auth_headers(path)
+
+    res = requests.get(
+        PRIVATE_BASE_URL + f'/user/spot/order',
+        headers=headers,
+        params={'pair': pair, 'order_id': order_id},
+    ).json()
+
+    if res.get('success') != 1:
+        error_code = res.get('data', {}).get('code')
+        # 50009: 注文が見つからない
+        if error_code == 50009:
+            print(f'  注文が見つかりません (order_id={order_id})')
+            return None
+        raise RuntimeError(f'注文取得APIエラー: {json.dumps(res, ensure_ascii=False)}')
+
+    order = res['data']
+    print(f'  注文状態: {order.get("status")} (order_id={order_id})')
+    return order
 
 
 def cancel_order(pair, order_id, dry_run=False):
     """注文をキャンセルする。
+
+    POST /v1/user/spot/cancel_order
+    ボディ: {"pair": "btc_jpy", "order_id": 12345}
 
     Args:
         pair: 通貨ペア
@@ -107,12 +155,32 @@ def cancel_order(pair, order_id, dry_run=False):
     Returns:
         bool: キャンセル成功時 True
     """
-    # TODO: Step 2 で実装
-    pass
+    if dry_run:
+        print(f'[DRY RUN] キャンセル: order_id={order_id}')
+        return True
+
+    path = '/v1/user/spot/cancel_order'
+    body = {'pair': pair, 'order_id': int(order_id)}
+    headers, body_str = _auth_headers(path, body)
+
+    res = requests.post(
+        PRIVATE_BASE_URL + '/user/spot/cancel_order',
+        headers=headers,
+        data=body_str.encode('utf-8'),
+    ).json()
+
+    success = res.get('success') == 1
+    if not success:
+        print(f'  キャンセルAPIレスポンス: {json.dumps(res, ensure_ascii=False)}')
+    return success
 
 
 def place_limit_order(pair, amount_str, price_str, dry_run=False):
     """Maker 指値注文を発注する（post_only: true）。
+
+    POST /v1/user/spot/order
+    ボディ: {"pair": "btc_jpy", "amount": "0.0001", "price": "15000000",
+             "side": "buy", "type": "limit", "post_only": true}
 
     post_only: true を指定することで:
       - 即時約定する価格の場合は自動キャンセルされる
@@ -128,5 +196,30 @@ def place_limit_order(pair, amount_str, price_str, dry_run=False):
         str: 注文ID（成功時）
         None: 失敗時
     """
-    # TODO: Step 2 で実装
-    pass
+    path = '/v1/user/spot/order'
+    body = {
+        'pair': pair,
+        'amount': amount_str,
+        'price': price_str,
+        'side': 'buy',
+        'type': 'limit',
+        'post_only': True,
+    }
+
+    if dry_run:
+        print(f'[DRY RUN] 発注: {json.dumps(body, ensure_ascii=False)}')
+        return None
+
+    headers, body_str = _auth_headers(path, body)
+
+    res = requests.post(
+        PRIVATE_BASE_URL + '/user/spot/order',
+        headers=headers,
+        data=body_str.encode('utf-8'),
+    ).json()
+
+    print(f'  発注APIレスポンス: {json.dumps(res, ensure_ascii=False)}')
+
+    if res.get('success') == 1:
+        return str(res['data']['order_id'])
+    return None
