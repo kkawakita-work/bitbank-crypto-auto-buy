@@ -7,7 +7,6 @@
 #   pair           : Bitbank の通貨ペア名（例: btc_jpy）
 #   monthly_budget : 月の積立予算（円）
 #   min_amount     : 最小注文数量（Bitbank の仕様: BTC は 0.0001）
-#   decimals       : 数量の小数桁数（0.0001 → 4桁）
 #
 # 予算蓄積ロジック:
 #   1日1回実行 × 30日 = monthly_budget を30分割して毎日加算
@@ -18,5 +17,4 @@ PAIR_CONFIG = {
     'pair': 'btc_jpy',
     'monthly_budget': 10000,   # 月間予算（円）
     'min_amount': 0.0001,      # 最小注文数量（BTC）
-    'decimals': 4,             # 数量の小数桁数
 }

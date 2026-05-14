@@ -123,7 +123,7 @@ def get_order(pair, order_id):
     headers, _ = _auth_headers(path)
 
     res = requests.get(
-        PRIVATE_BASE_URL + f'/user/spot/order',
+        PRIVATE_BASE_URL + '/user/spot/order',
         headers=headers,
         params={'pair': pair, 'order_id': order_id},
     ).json()

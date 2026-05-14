@@ -20,6 +20,7 @@ import math
 from datetime import datetime, timezone, timedelta
 
 try:
+    # pyrefly: ignore [missing-import]
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
@@ -149,8 +150,10 @@ def _try_new_order(pair, balance, dry_run):
     """
     price = get_ticker_price(pair)
     min_amount = PAIR_CONFIG['min_amount']
-    decimals = PAIR_CONFIG['decimals']
     min_order_jpy = price * min_amount
+
+    # min_amount から小数桁数を動的に計算（0.0001 → 4桁）
+    decimals = abs(int(round(math.log10(min_amount))))
 
     current_balance = balance.get(pair, 0)
     print(f'[{pair}] 残高: {current_balance:.0f}円 | '
