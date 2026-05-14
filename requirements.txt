@@ -1,0 +1,5 @@
+# Bitbank 自動積立Bot — Python 依存パッケージ
+requests==2.32.3
+python-dotenv==1.0.1
+google-cloud-storage==2.19.0
+google-cloud-firestore==2.20.1

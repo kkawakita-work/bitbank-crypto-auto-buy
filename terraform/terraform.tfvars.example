@@ -1,0 +1,44 @@
+# ==========================================
+# Bitbank 自動積立Bot — Terraform 変数設定サンプル
+# ==========================================
+# このファイルをコピーして terraform.tfvars を作成してください:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# ⚠️ terraform.tfvars には API キーなどの機密情報が含まれます。
+#    絶対に Git にコミットしないでください（.gitignore で除外済み）。
+# ==========================================
+
+# ------------------------------------------
+# GCP プロジェクト設定
+# ------------------------------------------
+project_id = "your-gcp-project-id"    # GCP プロジェクト ID
+region     = "asia-northeast1"         # リージョン（東京）
+
+# ------------------------------------------
+# GitHub 設定（Workload Identity Federation 用）
+# ------------------------------------------
+github_owner     = "your-github-org"            # GitHub Organization名 or ユーザー名
+github_repo_name = "bitbank-crypto-auto-buy"    # リポジトリ名
+
+# ------------------------------------------
+# Bitbank API 設定
+# ------------------------------------------
+# Bitbank の API 管理画面からキーを発行してください:
+#   https://app.bitbank.cc/account/api
+# ------------------------------------------
+bitbank_api_key    = "your-bitbank-api-key"
+bitbank_api_secret = "your-bitbank-api-secret"
+
+# ------------------------------------------
+# GCS バケット名
+# ------------------------------------------
+# グローバルで一意である必要があります。
+# 例: "your-project-id-bitbank-balance"
+# ------------------------------------------
+gcs_bucket_name = "your-project-id-bitbank-balance"
+
+# ------------------------------------------
+# Cloud Scheduler 設定
+# ------------------------------------------
+# scheduler_schedule = "0 9 * * *"    # デフォルト: 毎日 9:00 JST
+# scheduler_timezone = "Asia/Tokyo"   # デフォルト: 日本時間

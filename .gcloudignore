@@ -1,0 +1,20 @@
+# ==========================================
+# gcloud デプロイ除外設定
+# ==========================================
+# Cloud Functions デプロイ時に除外するファイル。
+# ソースコードと requirements.txt のみアップロードされる。
+# ==========================================
+
+.gcloudignore
+.git
+.gitignore
+.github/
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+terraform/
+INSTRUCTIONS.md
+README.md

@@ -1,0 +1,30 @@
+# ==========================================
+# Git 除外設定 — Bitbank 自動積立Bot
+# ==========================================
+
+# 環境変数・秘密情報
+.env
+*.env
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Terraform
+terraform.tfstate
+terraform.tfstate.*
+terraform.tfvars
+terraform/.tmp/
+.terraform/
+.terraform.lock.hcl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

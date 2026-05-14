@@ -1,0 +1,54 @@
+# ==========================================
+# Bitbank 自動積立Bot — CI/CD パイプライン
+# ==========================================
+# main ブランチへの push 時に Cloud Functions Gen2 にデプロイする。
+#
+# 前提条件:
+#   1. GCP で Workload Identity Federation が設定済み
+#   2. GitHub Secrets に以下を設定:
+#      - WORKLOAD_IDENTITY_PROVIDER: WIF プロバイダの完全修飾名
+#      - SERVICE_ACCOUNT_EMAIL: SA のメールアドレス
+#      - BITBANK_API_KEY: Bitbank API キー
+#      - BITBANK_API_SECRET: Bitbank API シークレット
+#      - GCS_BUCKET: 残高管理用 GCS バケット名
+#
+# ※ terraform output で上記の値を確認できます。
+# ==========================================
+
+name: Deploy to Cloud Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # WIF の OIDC トークン発行に必要
+
+    steps:
+      # ソースコードをチェックアウト
+      - uses: actions/checkout@v4
+
+      # GCP 認証（Workload Identity Federation）
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+
+      # Cloud Functions Gen2 にデプロイ
+      - uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: bitbank-auto-buy-bot
+          runtime: python312
+          region: asia-northeast1
+          entry_point: bitbank_auto_buy
+          environment: GEN_2
+          environment_variables: |-
+            BITBANK_API_KEY=${{ secrets.BITBANK_API_KEY }}
+            BITBANK_API_SECRET=${{ secrets.BITBANK_API_SECRET }}
+            GCS_BUCKET=${{ secrets.GCS_BUCKET }}
+            DRY_RUN=false
