@@ -47,10 +47,18 @@ def bitbank_auto_buy(request):
         print(f'=== Bitbank 自動積立 開始 {"[DRY RUN]" if dry_run else "[本番]"} ===')
         print(f'時刻(JST): {datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")}')
 
-        balance = load_balance(bucket_name)
+        # DRY RUN 時は GCS/Firestore を使わず、空の残高で動作確認
+        if dry_run:
+            balance = {}
+            print('  [DRY RUN] GCS/Firestore をスキップ（空の残高で実行）')
+        else:
+            balance = load_balance(bucket_name)
 
-        # Step 1: 前回注文の決着確認
-        resolved = _sync_previous_order(pair, balance, dry_run)
+        # Step 1: 前回注文の決着確認（DRY RUN 時はスキップ）
+        if dry_run:
+            resolved = True
+        else:
+            resolved = _sync_previous_order(pair, balance, dry_run)
 
         # Step 2: 予算蓄積（1日1回 × 30日 = monthly_budget を30分割）
         _accumulate_budget(pair, balance)
@@ -62,7 +70,7 @@ def bitbank_auto_buy(request):
         else:
             print(f'[{pair}] 前回注文が未決着のため新規注文をスキップ')
 
-        # Step 4: 残高保存
+        # Step 4: 残高保存（DRY RUN 時はスキップ）
         if not dry_run:
             save_balance(bucket_name, balance)
 
