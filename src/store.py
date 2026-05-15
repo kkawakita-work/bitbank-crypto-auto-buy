@@ -10,6 +10,7 @@ import json
 from datetime import datetime, timezone, timedelta
 # pyrefly: ignore [missing-import]
 from google.cloud import storage, firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 JST = timezone(timedelta(hours=9))
 
@@ -116,7 +117,7 @@ def get_latest_order(pair):
     db = firestore.Client()
     # 絞り込みのみを行い、並び替えは Python 側で行う（インデックス不要）
     docs = db.collection('orders') \
-        .where('pair', '==', pair) \
+        .where(filter=FieldFilter('pair', '==', pair)) \
         .stream()
 
     results = [(doc.id, doc.to_dict()) for doc in docs]

@@ -32,6 +32,7 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from src.bitbank import get_ticker_price
 from config import PAIR_CONFIG
 
@@ -68,8 +69,8 @@ def fetch_filled_orders(pair):
     """
     db = firestore.Client()
     docs = db.collection('orders') \
-        .where('pair', '==', pair) \
-        .where('status', '==', 'filled') \
+        .where(filter=FieldFilter('pair', '==', pair)) \
+        .where(filter=FieldFilter('status', '==', 'filled')) \
         .stream()
 
     orders = [doc.to_dict() for doc in docs]
