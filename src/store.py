@@ -8,7 +8,6 @@
 
 import json
 from datetime import datetime, timezone, timedelta
-# pyrefly: ignore [missing-import]
 from google.cloud import storage, firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 

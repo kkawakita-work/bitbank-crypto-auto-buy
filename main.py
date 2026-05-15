@@ -20,7 +20,6 @@ import math
 from datetime import datetime, timezone, timedelta
 
 try:
-    # pyrefly: ignore [missing-import]
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
