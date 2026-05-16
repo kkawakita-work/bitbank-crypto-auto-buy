@@ -15,6 +15,6 @@
 
 PAIR_CONFIG = {
     'pair': 'btc_jpy',
-    'monthly_budget': 10000,   # 月間予算（円）
+    'monthly_budget': 30000,   # 月間予算（円）
     'min_amount': 0.0001,      # 最小注文数量（BTC）
 }
