@@ -94,9 +94,9 @@ def get_ticker_price(pair='btc_jpy'):
     if res.get('success') != 1:
         raise RuntimeError(f'価格取得失敗: {json.dumps(res, ensure_ascii=False)}')
 
-    last_price = float(res['data']['last'])
-    print(f'  現在価格: {last_price:,.0f}円')
-    return last_price
+    best_bid = float(res['data']['buy'])
+    print(f'  現在価格(Best Bid): {best_bid:,.0f}円')
+    return best_bid
 
 
 def get_order(pair, order_id):
